@@ -27,7 +27,7 @@ class PaulsInst : public Usermod {
 
     void setup()
     {
-      Serial1.begin(31250);
+      Serial1.begin(31250, SERIAL_8N1, 0, 4);
       _midi = new Midi(&Serial1);
     }
 
