@@ -1,6 +1,9 @@
 #pragma once
 
 #include "wled.h"
+#include "midi.h"
+#include "driver/uart.h"
+#include "driver/gpio.h"
 
 #ifdef USERMOD_AUDIOREACTIVE
   #error You can not use paulsinst with audioreactive
@@ -10,23 +13,40 @@
 class PaulsInst : public Usermod {
 
   private:
+    Midi* _midi;
+    int _counter;
 
   public:
-  
-    void setup()
+
+    PaulsInst()
+      : _midi(NULL),
+      _counter(0)
     {
 
+    }
+
+    void setup()
+    {
+      Serial1.begin(31250);
+      _midi = new Midi(&Serial1);
     }
 
     void connected()
     {
-      
-    }
 
+    }
 
     void loop()
     {
-
+      _counter++;
+      if(_counter == 20)
+      {
+        _counter = 0;
+        Serial.println("test");
+      }
+      if(_midi) {
+        _midi->tick();
+      }
     }
 
     bool getUMData(um_data_t **data)

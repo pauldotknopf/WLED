@@ -1,3 +1,13 @@
+
+# Pauls notes
+
+This is the device for my ESP32
+
+```
+Hardware ID: USB VID:PID=10C4:EA60 SER=867d52742228ee1188c207d8f49e3369 LOCATION=1-1.2
+Description: CP2102N USB to UART Bridge Controller
+```
+
 <p align="center">
   <img src="/images/wled_logo_akemi.png">
   <a href="https://github.com/Aircoookie/WLED/releases"><img src="https://img.shields.io/github/release/Aircoookie/WLED.svg?style=flat-square"></a>
@@ -81,4 +91,3 @@ If you are prone to photosensitive epilepsy, we recommended you do **not** use t
 If you still want to try, don't use strobe, lighting or noise modes or high effect speed settings.
 
 As per the MIT license, I assume no liability for any damage to you or any other person or equipment.  
-
