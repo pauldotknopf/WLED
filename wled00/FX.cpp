@@ -6773,7 +6773,7 @@ uint16_t mode_blurz(void) {                    // Blurz. By Andrew Tuline.
 
   return FRAMETIME;
 } // mode_blurz()
-static const char _data_FX_MODE_BLURZ[] PROGMEM = "Blurz@Fade rate,Blur;!,Color mix;!;1f;m12=0,si=0"; // Pixels, Beatsin
+static const char _data_FX_MODE_BLURZ[] PROGMEM = "Blurztt@Fade rate,Blur;!,Color mix;!;1f;m12=0,si=0"; // Pixels, Beatsin
 
 
 /////////////////////////

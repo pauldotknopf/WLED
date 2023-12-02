@@ -157,6 +157,10 @@
   #include "../usermods/audioreactive/audio_reactive.h"
 #endif
 
+#ifdef USERMOD_PAULSINST
+  #include "../usermods/paulsinst/pauls_inst.h"
+#endif
+
 #ifdef USERMOD_ANALOG_CLOCK
   #include "../usermods/Analog_Clock/Analog_Clock.h"
 #endif
@@ -336,6 +340,10 @@ void registerUsermods()
 
   #ifdef USERMOD_AUDIOREACTIVE
   usermods.add(new AudioReactive());
+  #endif
+
+  #ifdef USERMOD_PAULSINST
+  usermods.add(new PaulsInst());
   #endif
 
   #ifdef USERMOD_ANALOG_CLOCK
