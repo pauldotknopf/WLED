@@ -8,6 +8,28 @@ Hardware ID: USB VID:PID=10C4:EA60 SER=867d52742228ee1188c207d8f49e3369 LOCATION
 Description: CP2102N USB to UART Bridge Controller
 ```
 
+Overlay effects:
+
+Scan
+Scan Dual
+Sparkle
+Sparkle Dark
+Sparkle
+Two Dots
+ICU
+Lightning
+Ripple
+Halloween Eye
+Spots
+Spots Fade
+Bouncing Balls
+Rolling Balls
+Glitter
+Popcorn
+Fireworks Starburst
+Drip
+Scrolling Text
+
 <p align="center">
   <img src="/images/wled_logo_akemi.png">
   <a href="https://github.com/Aircoookie/WLED/releases"><img src="https://img.shields.io/github/release/Aircoookie/WLED.svg?style=flat-square"></a>

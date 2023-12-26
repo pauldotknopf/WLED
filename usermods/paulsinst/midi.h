@@ -18,104 +18,141 @@
 #define MIDI_CMD_CHANNEL_PRESSURE 0xD0
 #define MIDI_CMD_PITCH_BEND 0xE0
 
-typedef void (*MidiEventCallbackFunction)(const byte note /*0 - 127*/, const byte velocity /*0 - 127*/);
+struct MidiCmdNote
+{
+  byte note;
+  byte velocity;
+};
 
-//class name. Use something descriptive and leave the ": public Usermod" part :)
-class Midi {
+struct MidiCmdPitchBend
+{
+  short bend;
+};
 
-  private:
-    Stream* _stream;
-    MidiEventCallbackFunction _callbackFunction;
-    byte _note;
-    byte _lastCommand;
-    byte _state;
-    byte _parameter1;
-    byte _parameter2;
-    byte _channel;
+struct MidiCmdControllerChange
+{
+  byte byte1;
+  byte byte2;
+};
 
-  public:
-  
-    Midi(Stream* stream)
+struct MidiCmdPressure
+{
+  byte pressure;
+};
+
+struct MidiCmd
+{
+  byte cmdType;
+  byte channel;
+  union
+  {
+    MidiCmdNote note;
+    MidiCmdPitchBend bend;
+    MidiCmdControllerChange controllerChange;
+    MidiCmdPressure pressure;
+  };
+};
+
+typedef void (*MidiCmdCallbackFunction)(const MidiCmd &cmd);
+
+// class name. Use something descriptive and leave the ": public Usermod" part :)
+class Midi
+{
+
+private:
+  Stream *_stream;
+  MidiCmdCallbackFunction _callbackFunction;
+  byte _state;
+  byte _parameter1;
+  byte _parameter2;
+  MidiCmd _currentCmd;
+
+public:
+  Midi(Stream *stream)
       : _stream(stream),
-      _callbackFunction(NULL)
-    {
-      _stream = stream;
-    }
+        _callbackFunction(NULL)
+  {
+    _stream = stream;
+  }
 
-    void setCallback(MidiEventCallbackFunction callbackFunction)
-    {
-      _callbackFunction = callbackFunction;
-    }
+  void setCallback(MidiCmdCallbackFunction callbackFunction)
+  {
+    _callbackFunction = callbackFunction;
+  }
 
-    void tick()
+  void tick()
+  {
+    while (_stream->available())
     {
-      while (_stream->available())
+      // read the incoming byte:
+      byte incomingByte = _stream->read();
+
+      // Command byte?
+      if (incomingByte & 0b10000000)
       {
-          // read the incoming byte:
-          byte incomingByte = _stream->read();
-          Serial.print("got a byte! ");
-          Serial.print(incomingByte);
-          Serial.println();
-          // Command byte?
-          if (incomingByte & 0b10000000)
-          {
-              _channel = incomingByte & 0x0F;
-              _lastCommand = incomingByte & 0xF0;
-              _state = MIDI_STATE_BYTE1; // Reset our state to byte1.
+        _currentCmd.channel = incomingByte & 0x0F;
+        _currentCmd.cmdType = incomingByte & 0xF0;
+        _state = MIDI_STATE_BYTE1; // Reset our state to byte1.
 
-              // Serial.print("command byte: ");
-              // Serial.print(_lastCommand);
-              // Serial.println();
+        // Serial.print("command byte: ");
+        // Serial.print( _currentCmd.cmdType);
+        // Serial.println();
+      }
+      else if (_state == MIDI_STATE_BYTE1)
+      {
+        _parameter1 = incomingByte;
+        _state = MIDI_STATE_BYTE2;
+
+        if (_currentCmd.cmdType == MIDI_CMD_CHANNEL_PRESSURE)
+        {
+          _currentCmd.pressure.pressure = _parameter1;
+          _callbackFunction(_currentCmd);
+        }
+      }
+      else if (_state == MIDI_STATE_BYTE2)
+      {
+        _parameter2 = incomingByte;
+        _state = MIDI_STATE_BYTE3;
+
+        if (_currentCmd.cmdType == MIDI_CMD_CONTROLLER_CHANGE)
+        {
+          if(_callbackFunction) {
+            _currentCmd.controllerChange.byte1 = _parameter1;
+            _currentCmd.controllerChange.byte2 = _parameter2;
+            _callbackFunction(_currentCmd);
           }
-          else if (_state == MIDI_STATE_BYTE1)
+        }
+
+        if (_currentCmd.cmdType == MIDI_CMD_PITCH_BEND)
+        {
+          if (_callbackFunction)
           {
-              _parameter1 = incomingByte;
-              _state = MIDI_STATE_BYTE2;
-
-              if(_lastCommand == MIDI_CMD_CHANNEL_PRESSURE)
-              {
-                  // Serial.print("channel pressure: ");
-                  // Serial.print(_channel);
-                  // Serial.print(" : ");
-                  // Serial.print(_parameter1);
-                  // Serial.println();
-              }
+            short bend = (_parameter2 << 7 | _parameter1) - 8192;
+            _currentCmd.bend.bend = bend;
+            _callbackFunction(_currentCmd);
           }
-          else if(_state == MIDI_STATE_BYTE2)
+        }
+
+        if (_currentCmd.cmdType == MIDI_CMD_NOTE_ON)
+        {
+          if (_callbackFunction)
           {
-              _parameter2 = incomingByte;
-              _state = MIDI_STATE_BYTE3;
-
-              if(_lastCommand == MIDI_CMD_CONTROLLER_CHANGE)
-              {
-                  // 1 tilt /2 shake / 112
-                  if(_parameter1 == 112){
-                  // Serial.print("controller change: ");
-                  // Serial.print(_channel);
-                  // Serial.print(" : ");
-                  // Serial.print(_parameter1);
-                  // Serial.print(" : ");
-                  // Serial.print(_parameter2);
-                  // Serial.println();
-                  }
-              }
-
-              if(_lastCommand == MIDI_CMD_PITCH_BEND)
-              {
-                  // Serial.print("pitch bend change: ");
-                  // short bend = (_parameter2 << 7 | _parameter1) - 8192;
-                  // Serial.print(bend);
-                  // Serial.println();
-              }
-
-              if(_lastCommand == MIDI_CMD_NOTE_ON)
-              {
-                  if(_callbackFunction)
-                  {
-                      _callbackFunction(_parameter1, _parameter2);
-                  }
-              }
+            _currentCmd.note.note = _parameter1;
+            _currentCmd.note.velocity = _parameter2;
+            _callbackFunction(_currentCmd);
           }
+        }
+
+        if (_currentCmd.cmdType == MIDI_CMD_NOTE_OFF)
+        {
+          if (_callbackFunction)
+          {
+            _currentCmd.note.note = _parameter1;
+            _currentCmd.note.velocity = _parameter2;
+            _callbackFunction(_currentCmd);
+          }
+        }
       }
     }
+  }
 };

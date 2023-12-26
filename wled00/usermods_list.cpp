@@ -343,7 +343,7 @@ void registerUsermods()
   #endif
 
   #ifdef USERMOD_PAULSINST
-  usermods.add(new PaulsInst());
+  usermods.add(PaulsInst::instance());
   #endif
 
   #ifdef USERMOD_ANALOG_CLOCK
